@@ -141,6 +141,8 @@ WorkingDirectory=$INSTALL_ROOT
 ExecStart=$INSTALL_ROOT/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
 Restart=always
 RestartSec=3
+LogsDirectory=llm-api
+Environment=LOG_DIR=/var/log/llm-api
 Environment=PYTHONUNBUFFERED=1
 Environment=PYTHONPATH=$INSTALL_ROOT
 Environment=OLLAMA_URL=http://127.0.0.1:11434
