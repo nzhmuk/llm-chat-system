@@ -1,6 +1,11 @@
 #!/bin/bash
+set -euo pipefail
 
-source /opt/llm-service/api/venv/bin/activate
+# Launch the API from its own directory using the local venv.
+# Intended for manual / local development (foreground; no systemd).
+cd "$(dirname "$0")"
+
+source venv/bin/activate
 
 export PYTHONPATH=.
 

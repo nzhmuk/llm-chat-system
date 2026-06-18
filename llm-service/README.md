@@ -8,15 +8,17 @@ It acts as a backend service for the main web application and provides a clean a
 
 ## Architecture
 
+```
 Web App (Laravel)
         ↓
 LLM Service (FastAPI)
         ↓
 Ollama (local only)
+```
 
-- FastAPI handles HTTP requests  
-- Ollama executes the model locally  
-- Ollama is NOT exposed externally  
+- FastAPI handles HTTP requests
+- Ollama executes the model locally
+- Ollama is NOT exposed externally
 
 ---
 
@@ -26,44 +28,124 @@ Ollama (local only)
 - Async request handling
 - Local LLM execution
 - Secure setup (LLM not publicly exposed)
-- systemd service support
+- systemd service support (automated install only)
 
 ---
 
 ## Requirements
 
-- Ubuntu / Debian-based system
-- Python 3.10+
-- Ollama installed
-- Model pulled (e.g. deepseek-r1:7b)
+- **Ubuntu 24.04** (only supported platform for now)
+- Internet access to download packages and the model
+
+Python, Ollama, and the model are **not** assumed to be pre-installed. The
+automated installer provisions all of them. For manual setup you install the
+prerequisites yourself (see below).
 
 ---
 
-## Manual Setup
+## Installation
 
-### 1. Navigate to API directory
+### Automated installation (recommended)
+
+The installer updates the system, installs all required components
+(Python, Ollama, the model, firewall), deploys the code to `/opt/llm-service`,
+and registers + starts the `llm-api` systemd service.
 
 ```bash
-cd llm-service/api
+# 1. Clone the repository
+git clone <REPO_URL>
+cd <REPO>/llm-service/install
+
+# 2. Run the installer
+./install.sh \
+  --web-app-ip=<WEB_APP_SERVER_IP> \
+  --model=deepseek-r1:7b
 ```
 
-### 2. Create virtual environment
+Arguments:
+
+| Argument       | Required | Default          | Description                                          |
+| -------------- | -------- | ---------------- | ---------------------------------------------------- |
+| `--web-app-ip` | yes      | —                | IP/CIDR of the web app allowed to reach port 8000    |
+| `--model`      | no       | `deepseek-r1:7b` | Ollama model to pull and serve                       |
+
+After it finishes, the service runs under systemd and starts automatically on boot.
+
+---
+
+### Manual setup
+
+Use this for local development or quick testing.
+
+> **Note:** Manual setup does **not** install or register the systemd service.
+> It only launches the API in the foreground — the process stops when you close
+> the terminal. Use the automated installation for a managed, persistent service.
+
+First install the prerequisites yourself:
 
 ```bash
+# Install Ollama
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Pull the model
+ollama pull deepseek-r1:7b
+```
+
+Then set up and run the API:
+
+```bash
+# 1. Navigate to the API directory
+cd llm-service/api
+
+# 2. Create a virtual environment
 python3 -m venv venv
 source venv/bin/activate
-```
 
-### 3. Install dependencies
-
-```bash
+# 3. Install dependencies
 pip install -r requirements.txt
+
+# 4. Run the service
+./run.sh
 ```
 
-### 4. Run the service
+> `run.sh` expects the `venv/` created in step 2 — run the setup steps first, or it will exit with an error.
 
-```bash
-./run.sh
+---
+
+## Configuration
+
+Environment variables:
+
+```
+OLLAMA_URL=http://127.0.0.1:11434
+OLLAMA_MODEL=deepseek-r1:7b
+```
+
+The automated installer sets these in the systemd unit. For manual setup, copy
+`api/.env.example` to `api/.env` and adjust as needed.
+
+---
+
+## API Endpoints
+
+### GET /health
+
+```json
+{ "status": "ok" }
+```
+
+### POST /chat
+
+Request:
+
+```json
+{ "message": "Hello" }
+```
+
+Response:
+
+```json
+{ "response": "Hello! How can I assist you today?" }
 ```
 
 ---
@@ -86,54 +168,7 @@ curl -X POST http://127.0.0.1:8000/chat \
 
 ---
 
-## Automated Installation
-
-```bash
-cd llm-service/install
-
-./install.sh \
-  --web-app-ip=<SERVER_B_IP> \
-  --model=deepseek-r1:7b
-```
-
----
-
-## Configuration
-
-Environment variables:
-
-```
-OLLAMA_URL=http://127.0.0.1:11434
-OLLAMA_MODEL=deepseek-r1:7b
-```
-
----
-
-## API Endpoints
-
-### GET /health
-
-```json
-{"status":"ok"}
-```
-
-### POST /chat
-
-Request:
-
-```json
-{"message":"Hello"}
-```
-
-Response:
-
-```json
-{"response":"Hello! How can I assist you today?"}
-```
-
----
-
-## Service Management
+## Service Management (automated install only)
 
 Restart:
 
@@ -159,10 +194,11 @@ journalctl -u llm-api -f
 
 - FastAPI runs on port 8000
 - Ollama runs on port 11434 (local only)
-- Firewall should allow access to port 8000 only from the web app server
+- The firewall allows access to port 8000 only from the web app server
 
 ---
 
 ## Summary
 
-This service provides a secure and simple API layer for interacting with a local LLM and is intended to be used as a backend component of a chat system.
+This service provides a secure and simple API layer for interacting with a local
+LLM and is intended to be used as a backend component of a chat system.
