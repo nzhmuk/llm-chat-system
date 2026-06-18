@@ -1,0 +1,15 @@
+[Unit]
+Description=LLM FastAPI Service
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/opt/llm-service/api
+ExecStart=/usr/bin/env bash /opt/llm-service/api/run.sh
+Restart=always
+
+Environment=OLLAMA_URL=http://127.0.0.1:11434
+Environment=OLLAMA_MODEL=deepseek-r1:7b
+
+[Install]
+WantedBy=multi-user.target
