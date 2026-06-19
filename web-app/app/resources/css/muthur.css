@@ -1,0 +1,94 @@
+body {
+    margin: 0;
+    background: black;
+    color: #00FF41;
+    font-family: "Courier New", monospace;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* ✅ HEADER */
+header {
+    border-bottom: 1px solid #00FF41;
+    padding: 10px 20px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 18px;
+    letter-spacing: 3px;
+    text-align: center;
+    text-shadow: 0 0 5px #00FF41;
+}
+
+/* ✅ CHAT AREA */
+main {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+/* ✅ MESSAGE STYLING */
+.message {
+    margin-bottom: 10px;
+    white-space: pre-wrap;
+}
+
+.user::before {
+    content: "YOU > ";
+}
+
+.assistant::before {
+    content: "MU-TH-UR > ";
+}
+
+/* ✅ THINKING STATE */
+.thinking {
+    color: #00aa22;
+    font-style: italic;
+}
+
+/* ✅ FOOTER */
+footer {
+    border-top: 1px solid #00FF41;
+    padding: 10px;
+    display: flex;
+}
+
+/* ✅ INPUT */
+input {
+    flex: 1;
+    background: black;
+    color: #00FF41;
+    border: none;
+    outline: none;
+    font-family: inherit;
+}
+
+input::placeholder {
+    color: #006600;
+}
+
+/* ✅ BUTTON */
+button {
+    background: black;
+    color: #00FF41;
+    border: 1px solid #00FF41;
+    padding: 5px 10px;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #003300;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
