@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>MU-TH-UR 6000</title>
 
     @vite(['resources/css/app.css'])
@@ -25,6 +26,7 @@ const button = document.getElementById('sendBtn');
 
 input.focus();
 
+// ENTER to send
 input.addEventListener("keydown", function(e) {
     if (e.key === "Enter") send();
 });
@@ -34,6 +36,7 @@ async function send() {
     if (!text) return;
 
     appendMessage("user", text);
+
     input.value = "";
     disableInput(true);
 
@@ -51,10 +54,15 @@ async function send() {
 
         const data = await res.json();
 
+        // ✅ STOP ANIMATION
+        clearInterval(thinkingEl.dataset.intervalId);
+
+        // ✅ SHOW FINAL RESPONSE
         thinkingEl.textContent = data.response;
         thinkingEl.classList.remove("thinking");
 
     } catch (e) {
+        clearInterval(thinkingEl.dataset.intervalId);
         thinkingEl.textContent = "ERROR: CONNECTION FAILED";
     }
 
@@ -62,6 +70,7 @@ async function send() {
     input.focus();
 }
 
+// append user/system message
 function appendMessage(role, text) {
     const chat = document.getElementById('chat');
 
@@ -73,12 +82,25 @@ function appendMessage(role, text) {
     chat.scrollTop = chat.scrollHeight;
 }
 
+// ✅ animated "accessing mainframe..."
 function appendThinking() {
     const chat = document.getElementById('chat');
 
     const div = document.createElement('div');
     div.className = "message assistant thinking";
-    div.textContent = "accessing mainframe...";
+
+    let dots = "";
+    const baseText = "accessing mainframe";
+
+    div.textContent = baseText;
+
+    const interval = setInterval(() => {
+        dots = dots.length < 3 ? dots + "." : "";
+        div.textContent = baseText + dots;
+    }, 400);
+
+    // store interval id so we can stop it
+    div.dataset.intervalId = interval;
 
     chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
@@ -86,6 +108,7 @@ function appendThinking() {
     return div;
 }
 
+// disable UI during processing
 function disableInput(state) {
     input.disabled = state;
     button.disabled = state;

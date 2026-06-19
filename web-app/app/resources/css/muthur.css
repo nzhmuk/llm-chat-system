@@ -8,32 +8,29 @@ body {
     height: 100vh;
 }
 
-/* ✅ HEADER */
+/* HEADER */
 header {
     border-bottom: 1px solid #00FF41;
     padding: 10px 20px;
-
     display: flex;
     justify-content: center;
-    align-items: center;
 }
 
 header h1 {
     margin: 0;
     font-size: 18px;
     letter-spacing: 3px;
-    text-align: center;
     text-shadow: 0 0 5px #00FF41;
 }
 
-/* ✅ CHAT AREA */
+/* CHAT AREA */
 main {
     flex: 1;
     padding: 10px;
     overflow-y: auto;
 }
 
-/* ✅ MESSAGE STYLING */
+/* MESSAGES */
 .message {
     margin-bottom: 10px;
     white-space: pre-wrap;
@@ -47,20 +44,32 @@ main {
     content: "MU-TH-UR > ";
 }
 
-/* ✅ THINKING STATE */
+/* THINKING STATE */
 .thinking {
     color: #00aa22;
     font-style: italic;
 }
 
-/* ✅ FOOTER */
+/* ✅ BLINKING CURSOR */
+.thinking::after {
+    content: " _";
+    animation: blink 1s steps(2, start) infinite;
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
+}
+
+/* FOOTER */
 footer {
     border-top: 1px solid #00FF41;
     padding: 10px;
     display: flex;
 }
 
-/* ✅ INPUT */
+/* INPUT */
 input {
     flex: 1;
     background: black;
@@ -70,11 +79,7 @@ input {
     font-family: inherit;
 }
 
-input::placeholder {
-    color: #006600;
-}
-
-/* ✅ BUTTON */
+/* BUTTON */
 button {
     background: black;
     color: #00FF41;
@@ -82,10 +87,6 @@ button {
     padding: 5px 10px;
     margin-left: 10px;
     cursor: pointer;
-}
-
-button:hover {
-    background: #003300;
 }
 
 button:disabled {
