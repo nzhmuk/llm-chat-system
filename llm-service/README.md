@@ -24,8 +24,10 @@ Ollama (local only)
 
 ## Features
 
-- REST API for chat
+- REST API for chat (standard JSON and token streaming)
 - Async request handling
+- Request validation
+- Model kept warm in memory (preloaded on startup, configurable keep-alive)
 - Local LLM execution
 - Secure setup (LLM not publicly exposed)
 - systemd service support (automated install only)
@@ -116,13 +118,17 @@ pip install -r requirements.txt
 
 Environment variables:
 
-```
-OLLAMA_URL=http://127.0.0.1:11434
-OLLAMA_MODEL=deepseek-r1:7b
-```
+| Variable             | Default                  | Description                                                        |
+| -------------------- | ------------------------ | ------------------------------------------------------------------ |
+| `OLLAMA_URL`         | `http://127.0.0.1:11434` | URL of the local Ollama daemon                                     |
+| `OLLAMA_MODEL`       | `deepseek-r1:7b`         | Model used for generation                                          |
+| `OLLAMA_KEEP_ALIVE`  | `30m`                    | How long Ollama keeps the model loaded in memory (`-1` = forever)  |
 
 The automated installer sets these in the systemd unit. For manual setup, copy
 `api/.env.example` to `api/.env` and adjust as needed.
+
+On startup the service sends a warm-up request so the model is preloaded and the
+first chat request doesn't pay the model-load delay.
 
 ---
 
@@ -136,6 +142,8 @@ The automated installer sets these in the systemd unit. For manual setup, copy
 
 ### POST /chat
 
+Returns the full response once generation completes.
+
 Request:
 
 ```json
@@ -146,6 +154,21 @@ Response:
 
 ```json
 { "response": "Hello! How can I assist you today?" }
+```
+
+`message` is required and must be 1–8000 characters; otherwise the API responds
+with `422 Unprocessable Entity`.
+
+### POST /chat/stream
+
+Same request body as `/chat`, but streams the response token-by-token as
+`text/plain` (lower time-to-first-token, better for chat UIs). The response is
+not JSON — it is the raw generated text sent incrementally.
+
+Request:
+
+```json
+{ "message": "Hello" }
 ```
 
 ---
@@ -164,6 +187,16 @@ curl http://127.0.0.1:8000/health
 curl -X POST http://127.0.0.1:8000/chat \
   -H "Content-Type: application/json" \
   -d '{"message":"Hello"}'
+```
+
+### Streaming chat request
+
+`-N` disables curl buffering so tokens appear as they are generated:
+
+```bash
+curl -N -X POST http://127.0.0.1:8000/chat/stream \
+  -H "Content-Type: application/json" \
+  -d '{"message":"Tell me a short story."}'
 ```
 
 ---
