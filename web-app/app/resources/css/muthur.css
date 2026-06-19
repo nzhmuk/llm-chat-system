@@ -1,8 +1,8 @@
 body {
-    margin: 0;
-    background: black;
-    color: #00FF41;
-    font-family: "Courier New", monospace;
+    margin: 0 !important;
+    background: black !important;
+    color: #00FF41 !important;
+    font-family: "Courier New", monospace !important;
     display: flex;
     flex-direction: column;
     height: 100vh;

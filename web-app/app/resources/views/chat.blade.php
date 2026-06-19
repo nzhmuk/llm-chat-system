@@ -3,8 +3,9 @@
 <head>
     <title>MU-TH-UR 6000</title>
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css'])
 </head>
+
 <body>
 
 <header>
@@ -24,11 +25,8 @@ const button = document.getElementById('sendBtn');
 
 input.focus();
 
-// ✅ ENTER TO SEND
 input.addEventListener("keydown", function(e) {
-    if (e.key === "Enter") {
-        send();
-    }
+    if (e.key === "Enter") send();
 });
 
 async function send() {
@@ -36,11 +34,9 @@ async function send() {
     if (!text) return;
 
     appendMessage("user", text);
-
     input.value = "";
     disableInput(true);
 
-    // ✅ SHOW THINKING MESSAGE
     const thinkingEl = appendThinking();
 
     try {
@@ -55,7 +51,6 @@ async function send() {
 
         const data = await res.json();
 
-        // ✅ REPLACE WITH REAL RESPONSE
         thinkingEl.textContent = data.response;
         thinkingEl.classList.remove("thinking");
 
@@ -67,7 +62,6 @@ async function send() {
     input.focus();
 }
 
-// ✅ ADD NORMAL MESSAGE
 function appendMessage(role, text) {
     const chat = document.getElementById('chat');
 
@@ -79,7 +73,6 @@ function appendMessage(role, text) {
     chat.scrollTop = chat.scrollHeight;
 }
 
-// ✅ ADD "ACCESSING MAINFRAME..."
 function appendThinking() {
     const chat = document.getElementById('chat');
 
@@ -93,7 +86,6 @@ function appendThinking() {
     return div;
 }
 
-// ✅ DISABLE INPUT WHILE WAITING
 function disableInput(state) {
     input.disabled = state;
     button.disabled = state;
