@@ -272,11 +272,14 @@ a {
     text-shadow: 0 0 8px var(--accent);
 }
 
-.mu-boot-sub {
-    margin: 0 0 28px;
+.mu-boot-log {
+    margin: 0 auto 24px;
+    min-height: 8em;          /* reserve space so the button doesn't jump in */
+    text-align: left;
+    white-space: pre-wrap;
     font-size: 13px;
-    letter-spacing: 2px;
-    opacity: 0.8;
+    line-height: 1.7;
+    text-shadow: 0 0 4px var(--accent);
 }
 
 .mu-boot button {

@@ -13,8 +13,8 @@
 <div id="boot" class="mu-boot">
     <div class="mu-boot-inner">
         <p class="mu-boot-title">MU-TH-UR / 6000</p>
-        <p class="mu-boot-sub">TERMINAL OFFLINE — OPERATOR PRESENCE REQUIRED</p>
-        <button type="button" id="bootBtn">&#9658; INITIATE INTERFACE</button>
+        <pre id="bootLog" class="mu-boot-log"></pre>
+        <button type="button" id="bootBtn" hidden>&#9658; INITIATE INTERFACE</button>
     </div>
 </div>
 
@@ -88,11 +88,32 @@ function stopAllSounds() {
     stopLoop('teletype');
 }
 
+let bgFade = null;
+
+// Ramp the background volume to `target` over `duration` ms.
+function fadeBackground(target, duration = 800, onDone) {
+    if (bgFade) cancelAnimationFrame(bgFade);
+    const start = sounds.background.volume;
+    const t0 = performance.now();
+    (function step(now) {
+        const p = Math.min(1, (now - t0) / duration);
+        sounds.background.volume = start + (target - start) * p;
+        if (p < 1) {
+            bgFade = requestAnimationFrame(step);
+        } else {
+            bgFade = null;
+            if (onDone) onDone();
+        }
+    })(performance.now());
+}
+
 function startBackground() {
     if (muted) return;
     if (sounds.background.paused) {
-        sounds.background.volume = BG_VOLUME;
-        sounds.background.play().catch(() => {});   // ignore autoplay rejections
+        sounds.background.volume = 0;
+        sounds.background.play()
+            .then(() => fadeBackground(BG_VOLUME))   // fade in
+            .catch(() => {});                        // ignore autoplay rejections
     }
 }
 
@@ -101,9 +122,47 @@ function startBackground() {
 document.addEventListener('click', startBackground);
 document.addEventListener('keydown', startBackground);
 
-// Boot overlay: clicking it is the user gesture that lets audio start, then it
-// dismisses to reveal the terminal.
-document.getElementById('bootBtn').addEventListener('click', () => {
+// Boot overlay: type a power-on sequence, then reveal the INITIATE button.
+const bootLog = document.getElementById('bootLog');
+const bootBtn = document.getElementById('bootBtn');
+const bootLines = [
+    "INITIALIZING MU-TH-UR/6000...",
+    "CORE MEMORY........ OK",
+    "LIFE SUPPORT LINK.. OK",
+    "NAVIGATION DB...... OK",
+    "SECURITY DIRECTIVES LOADED",
+];
+let bootIdx = 0;
+const bootTimer = setInterval(() => {
+    bootLog.textContent += bootLines[bootIdx++] + "\n";
+    if (bootIdx >= bootLines.length) {
+        clearInterval(bootTimer);
+        bootBtn.hidden = false;
+    }
+}, 450);
+
+// Short rising "power-on" tone (Web Audio). The click is the gesture that
+// permits audio playback.
+function powerOnBeep() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(220, ctx.currentTime);
+        o.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.25);
+        g.gain.setValueAtTime(0.12, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+        o.connect(g);
+        g.connect(ctx.destination);
+        o.start();
+        o.stop(ctx.currentTime + 0.4);
+    } catch (e) { /* no-op */ }
+}
+
+// Clicking INITIATE is the user gesture that lets audio start; then dismiss.
+bootBtn.addEventListener('click', () => {
+    if (!muted) powerOnBeep();
     startBackground();
     document.getElementById('boot').classList.add('hidden');
     input.focus();
@@ -115,7 +174,7 @@ function toggleMute() {
     document.getElementById('muteBtn').textContent = 'AUDIO: ' + (muted ? 'OFF' : 'ON');
     if (muted) {
         stopAllSounds();
-        sounds.background.pause();
+        fadeBackground(0, 600, () => sounds.background.pause());   // fade out, then pause
     } else {
         startBackground();
     }
