@@ -70,6 +70,13 @@ class ChatController extends Controller
         $session->messages()->create(['role' => 'user', 'content' => $validated['message']]);
 
         return response()->stream(function () use ($llm, $validated, $history, $session) {
+            // Disable PHP-side compression/buffering so each chunk is flushed
+            // immediately (gzip buffering would defeat streaming).
+            @ini_set('zlib.output_compression', '0');
+            while (ob_get_level() > 0) {
+                ob_end_flush();
+            }
+
             $full = '';
 
             try {

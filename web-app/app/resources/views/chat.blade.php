@@ -226,13 +226,11 @@ async function send() {
         streamDone = true;   // the drain reveals what's left, then calls finish()
 
     } catch (e) {
-        clearInterval(drain);
-        clearInterval(thinkingEl._intervalId);
-        thinkingEl.classList.remove("thinking");
-        thinkingEl.textContent = e.message || "CONNECTION FAILURE.";
-        stopAllSounds();
-        disableInput(false);
-        input.focus();
+        // Route the error through the same reveal buffer so it types out with
+        // the teletype sound, consistent with normal output.
+        pending = e.message || "CONNECTION FAILURE.";
+        gotAny = true;
+        streamDone = true;   // drain reveals it, then calls finish()
     }
 }
 
