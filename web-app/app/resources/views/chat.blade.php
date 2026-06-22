@@ -56,7 +56,7 @@ const sounds = {
 sounds.thinking.loop = true;
 sounds.teletype.loop = true;
 sounds.background.loop = true;
-const BG_VOLUME = 0.7;   // target ambient level; faded in/out rather than hard cut
+const BG_VOLUME = 0.7;   // ambient bed volume; thinking/teletype mix over it
 
 let muted = localStorage.getItem('mu_muted') === '1';
 document.getElementById('muteBtn').textContent = 'AUDIO: ' + (muted ? 'OFF' : 'ON');
@@ -80,32 +80,11 @@ function stopAllSounds() {
     stopLoop('teletype');
 }
 
-let bgFade = null;
-
-// Ramp the background volume to `target` over `duration` ms.
-function fadeBackground(target, duration = 800, onDone) {
-    if (bgFade) cancelAnimationFrame(bgFade);
-    const start = sounds.background.volume;
-    const t0 = performance.now();
-    (function step(now) {
-        const p = Math.min(1, (now - t0) / duration);
-        sounds.background.volume = start + (target - start) * p;
-        if (p < 1) {
-            bgFade = requestAnimationFrame(step);
-        } else {
-            bgFade = null;
-            if (onDone) onDone();
-        }
-    })(performance.now());
-}
-
 function startBackground() {
     if (muted) return;
     if (sounds.background.paused) {
-        sounds.background.volume = 0;
-        sounds.background.play()
-            .then(() => fadeBackground(BG_VOLUME))   // fade in
-            .catch(() => {});                        // ignore autoplay rejections
+        sounds.background.volume = BG_VOLUME;
+        sounds.background.play().catch(() => {});   // ignore autoplay rejections
     }
 }
 
@@ -120,7 +99,7 @@ function toggleMute() {
     document.getElementById('muteBtn').textContent = 'AUDIO: ' + (muted ? 'OFF' : 'ON');
     if (muted) {
         stopAllSounds();
-        fadeBackground(0, 600, () => sounds.background.pause());   // fade out, then pause
+        sounds.background.pause();
     } else {
         startBackground();
     }
