@@ -56,7 +56,7 @@ const sounds = {
 sounds.thinking.loop = true;
 sounds.teletype.loop = true;
 sounds.background.loop = true;
-const BG_VOLUME = 0.2;   // target ambient level; faded in/out rather than hard cut
+const BG_VOLUME = 0.7;   // target ambient level; faded in/out rather than hard cut
 
 let muted = localStorage.getItem('mu_muted') === '1';
 document.getElementById('muteBtn').textContent = 'AUDIO: ' + (muted ? 'OFF' : 'ON');
