@@ -29,9 +29,10 @@ class ChatController extends Controller
     public function newSession(Request $request)
     {
         // Start a fresh conversation. Prior sessions stay in the database.
+        // Called via AJAX so the page (and audio) isn't reloaded.
         ChatSession::create(['user_id' => $request->user()->id]);
 
-        return redirect()->route('chat.index');
+        return response()->noContent();
     }
 
     public function send(Request $request, LlmClient $llm)

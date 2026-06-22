@@ -22,10 +22,7 @@
     <h1>MU-TH-UR / 6000</h1>
     <nav class="mu-nav">
         <button type="button" id="muteBtn" onclick="toggleMute()">AUDIO: ON</button>
-        <form method="POST" action="{{ route('chat.new') }}">
-            @csrf
-            <button type="submit">NEW INQUIRY</button>
-        </form>
+        <button type="button" id="newBtn" onclick="newInquiry()">NEW INQUIRY</button>
         <a href="{{ route('dashboard') }}">DASHBOARD</a>
         <form method="POST" action="{{ route('logout') }}">
             @csrf
@@ -184,6 +181,25 @@ function toggleMute() {
 input.addEventListener("keydown", function(e) {
     if (e.key === "Enter") send();
 });
+
+// NEW INQUIRY: start a fresh session and clear the screen without reloading
+// (so the boot overlay doesn't replay and the ambient audio keeps playing).
+async function newInquiry() {
+    try {
+        const res = await fetch('/chat/new', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            credentials: 'same-origin'
+        });
+        if (!res.ok) return;
+        chatEl.innerHTML = '';
+        input.value = '';
+        input.focus();
+    } catch (e) { /* ignore */ }
+}
 
 async function send() {
     const text = input.value.trim();
