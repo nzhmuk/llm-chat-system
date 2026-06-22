@@ -10,6 +10,14 @@
 
 <body class="theme-muthur">
 
+<div id="boot" class="mu-boot">
+    <div class="mu-boot-inner">
+        <p class="mu-boot-title">MU-TH-UR / 6000</p>
+        <p class="mu-boot-sub">TERMINAL OFFLINE — OPERATOR PRESENCE REQUIRED</p>
+        <button type="button" id="bootBtn">&#9658; INITIATE INTERFACE</button>
+    </div>
+</div>
+
 <header class="mu-appbar">
     <h1>MU-TH-UR / 6000</h1>
     <nav class="mu-nav">
@@ -92,6 +100,14 @@ function startBackground() {
 // first interaction (and it no-ops once already playing).
 document.addEventListener('click', startBackground);
 document.addEventListener('keydown', startBackground);
+
+// Boot overlay: clicking it is the user gesture that lets audio start, then it
+// dismisses to reveal the terminal.
+document.getElementById('bootBtn').addEventListener('click', () => {
+    startBackground();
+    document.getElementById('boot').classList.add('hidden');
+    input.focus();
+});
 
 function toggleMute() {
     muted = !muted;
