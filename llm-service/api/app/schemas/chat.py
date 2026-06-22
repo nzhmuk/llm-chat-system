@@ -12,6 +12,8 @@ class ChatRequest(BaseModel):
     model: str | None = Field(default=None, max_length=100)
     # Prior conversation turns, oldest first.
     history: list[HistoryMessage] | None = Field(default=None)
+    # Operator clearance for Special Order 937 (granted by the web app).
+    cleared: bool = Field(default=False)
 
 
 class ChatResponse(BaseModel):

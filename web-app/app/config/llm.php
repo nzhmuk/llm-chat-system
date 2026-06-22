@@ -14,4 +14,7 @@ return [
     // API key for the LLM service (sent as a Bearer token). Must match the
     // LLM_API_KEY configured on the LLM service.
     'key' => env('LLM_API_KEY'),
+
+    // Passphrase that unlocks Special Order 937 clearance for the session.
+    'clearance_phrase' => env('LLM_CLEARANCE_PHRASE', 'OVERRIDE 937'),
 ];
