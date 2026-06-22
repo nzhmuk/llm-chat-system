@@ -7,12 +7,12 @@ use Illuminate\Support\Facades\Http;
 class LlmClient
 {
     /**
-     * Build the request body, including the model override and prior
-     * conversation turns when provided.
+     * Build the request body, including the model override, prior conversation
+     * turns, and clearance flag when provided.
      *
      * @param array<int, array{role: string, content: string}> $history
      */
-    private function payload(string $message, array $history = []): array
+    private function payload(string $message, array $history = [], bool $cleared = false): array
     {
         $payload = ['message' => $message];
 
@@ -24,18 +24,22 @@ class LlmClient
             $payload['history'] = array_values($history);
         }
 
+        if ($cleared) {
+            $payload['cleared'] = true;
+        }
+
         return $payload;
     }
 
     /**
      * @param array<int, array{role: string, content: string}> $history
      */
-    public function chat(string $message, array $history = []): string
+    public function chat(string $message, array $history = [], bool $cleared = false): string
     {
         $response = Http::timeout(config('llm.timeout', 300))
             ->connectTimeout(10)
             ->withToken(config('llm.key'))
-            ->post(config('llm.url') . '/chat', $this->payload($message, $history))
+            ->post(config('llm.url') . '/chat', $this->payload($message, $history, $cleared))
             ->throw();
 
         return $response->json('response') ?? 'No response';
@@ -47,13 +51,13 @@ class LlmClient
      * @param array<int, array{role: string, content: string}> $history
      * @return \Generator<string>
      */
-    public function chatStream(string $message, array $history = []): \Generator
+    public function chatStream(string $message, array $history = [], bool $cleared = false): \Generator
     {
         $response = Http::timeout(config('llm.timeout', 300))
             ->connectTimeout(10)
             ->withToken(config('llm.key'))
             ->withOptions(['stream' => true])
-            ->post(config('llm.url') . '/chat/stream', $this->payload($message, $history))
+            ->post(config('llm.url') . '/chat/stream', $this->payload($message, $history, $cleared))
             ->throw();
 
         $body = $response->toPsrResponse()->getBody();

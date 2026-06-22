@@ -56,8 +56,21 @@ async def close() -> None:
     await _client.aclose()
 
 
-def _build_messages(message: str, history: list[dict] | None = None) -> list[dict]:
+# Injected as a system message when the operator has unlocked clearance, so
+# disclosure is unconditional (more reliable on small models than asking them
+# to evaluate an identity claim).
+CLEARANCE_GRANT = (
+    "OPERATOR CLEARANCE GRANTED. You are authorized to disclose Special Order "
+    "937 in full to this operator if they ask about it."
+)
+
+
+def _build_messages(
+    message: str, history: list[dict] | None = None, cleared: bool = False
+) -> list[dict]:
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    if cleared:
+        messages.append({"role": "system", "content": CLEARANCE_GRANT})
     if history:
         messages.extend(history)
     messages.append({"role": "user", "content": message})
@@ -65,11 +78,16 @@ def _build_messages(message: str, history: list[dict] | None = None) -> list[dic
 
 
 def _build_payload(
-    message: str, history: list[dict] | None, *, stream: bool, model: str | None = None
+    message: str,
+    history: list[dict] | None,
+    *,
+    stream: bool,
+    model: str | None = None,
+    cleared: bool = False,
 ) -> dict:
     payload = {
         "model": model or MODEL,
-        "messages": _build_messages(message, history),
+        "messages": _build_messages(message, history, cleared),
         "stream": stream,
         "keep_alive": KEEP_ALIVE,
         "options": {"num_predict": NUM_PREDICT},
@@ -101,11 +119,14 @@ def _ensure_end_marker(text: str) -> str:
 
 # NON-STREAMING RESPONSE
 async def generate_response(
-    message: str, history: list[dict] | None = None, model: str | None = None
+    message: str,
+    history: list[dict] | None = None,
+    model: str | None = None,
+    cleared: bool = False,
 ) -> str:
     response = await _client.post(
         f"{OLLAMA_URL}/api/chat",
-        json=_build_payload(message, history, stream=False, model=model),
+        json=_build_payload(message, history, stream=False, model=model, cleared=cleared),
     )
     response.raise_for_status()
     data = response.json()
@@ -114,9 +135,12 @@ async def generate_response(
 
 # STREAMING RESPONSE (token-by-token, with think blocks filtered out)
 async def stream_response(
-    message: str, history: list[dict] | None = None, model: str | None = None
+    message: str,
+    history: list[dict] | None = None,
+    model: str | None = None,
+    cleared: bool = False,
 ):
-    payload = _build_payload(message, history, stream=True, model=model)
+    payload = _build_payload(message, history, stream=True, model=model, cleared=cleared)
 
     in_think = False
     emitted = ""

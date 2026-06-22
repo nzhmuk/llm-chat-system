@@ -16,7 +16,10 @@ def _history(request: ChatRequest) -> list[dict] | None:
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     response = await generate_response(
-        request.message, history=_history(request), model=request.model
+        request.message,
+        history=_history(request),
+        model=request.model,
+        cleared=request.cleared,
     )
     return ChatResponse(response=response)
 
@@ -24,6 +27,11 @@ async def chat(request: ChatRequest):
 @router.post("/chat/stream")
 async def chat_stream(request: ChatRequest):
     return StreamingResponse(
-        stream_response(request.message, history=_history(request), model=request.model),
+        stream_response(
+            request.message,
+            history=_history(request),
+            model=request.model,
+            cleared=request.cleared,
+        ),
         media_type="text/plain",
     )

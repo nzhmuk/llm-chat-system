@@ -1,0 +1,11 @@
+# Default owner (everything)
+* @nzhmuk
+
+# LLM service (backend)
+/llm-service/ @nzhmuk
+
+# Laravel app (frontend)
+/web-app/ @nzhmuk
+
+# Docs
+/docs/ @nzhmuk
